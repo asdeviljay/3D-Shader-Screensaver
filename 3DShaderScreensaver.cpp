@@ -3,9 +3,11 @@
 
 #include "pch.h"
 #include <iostream>
+#include <vector>
 
 #include "Thirdparty/glm/glm/glm.hpp"
 #include "Thirdparty/glm/glm/gtc/matrix_transform.hpp"
+#include "Thirdparty/glm/glm/gtc/type_ptr.hpp"
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -22,6 +24,26 @@ const unsigned int SCREEN_HEIGHT = 480;
 int tri_fan_size = 0;
 
 float x = 0.0f, y = 0.0f;
+float yaw = -90.0f;
+float pitch = 0.0f;
+float lastX = SCREEN_WIDTH / 2.0f;
+float lastY = SCREEN_HEIGHT / 2.0f;
+bool firstMouse = true;
+
+glm::mat4 transform;
+glm::vec3 cameraPos;
+glm::vec3 cameraFront;
+glm::vec3 cameraUp;
+glm::mat4 view;
+glm::mat4 projection;
+
+GLuint sID;
+GLuint arrayID;
+GLuint positionID;
+GLuint colorID;
+GLuint transformID;
+GLuint viewID;
+GLuint projectionID;
 
 const char * vertexShaderCode = GLSL(120,
 
@@ -94,7 +116,6 @@ void linkCheck(GLuint ID) {
 /*----------------------------------------------------------------
 *  Start Main Function
 *-----------------------------------------------------------------*/
-#include <vector>
 
 struct Vertex
 {
@@ -125,6 +146,7 @@ void initModel()
 	float circum = 0.01745329252f;
 	float radius = 0.2f;
 	float k = 0.01666666666f;
+
 
 	model.emplace_back(Vertex(
 		x, y, 0.0f,
@@ -161,14 +183,6 @@ void initModel()
 		r, g, b));
 	tri_fan_size++;
 }
-
-GLuint sID;
-GLuint arrayID;
-GLuint positionID;
-GLuint colorID;
-GLuint transformID;
-GLuint viewID;
-GLuint projectionID;
 
 void initShaders()
 {
@@ -238,16 +252,9 @@ void drawArray()
 	glUseProgram(0);
 }
 
-glm::mat4 transform;
-glm::vec3 cameraPos;
-glm::vec3 cameraFront;
-glm::vec3 cameraUp;
-glm::mat4 view;
-glm::mat4 projection;
-
 void initCamera() 
 {
-	projection = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
+	projection = glm::perspective(glm::radians(45.0f), static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT), 0.1f, 100.0f);
 	cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 	cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -344,12 +351,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
 	}
 }
-
-float yaw = -90.0f;
-float pitch = 0.0f;
-float lastX = SCREEN_WIDTH / 2.0f;
-float lastY = SCREEN_HEIGHT / 2.0f;
-bool firstMouse = true;
 
 static void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
